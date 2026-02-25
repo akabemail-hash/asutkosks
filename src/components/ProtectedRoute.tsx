@@ -18,5 +18,16 @@ export default function ProtectedRoute({ children, requiredRole }: { children: R
     return <div className="p-4 text-red-600">Access Denied: You do not have permission to view this page.</div>;
   }
 
+  // Check permissions based on current path
+  if (user.permissions && Array.isArray(user.permissions)) {
+    const currentPath = location.pathname;
+    const hasPermission = user.permissions.includes('*') || 
+                          user.permissions.some((p: string) => currentPath.startsWith(p));
+    
+    if (!hasPermission) {
+      return <div className="p-4 text-red-600">Access Denied: You do not have permission to view this page.</div>;
+    }
+  }
+
   return <>{children}</>;
 }

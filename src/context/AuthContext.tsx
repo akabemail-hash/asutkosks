@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { fetchWithAuth } from '../utils/api';
 
 interface User {
   id: number;
@@ -25,10 +26,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch('/api/auth/me');
+        const res = await fetchWithAuth('/api/auth/me');
         if (res.ok) {
           const data = await res.json();
           setUser(data.user);
+        } else {
+          // If auth fails (e.g. 401), clear local token
+          localStorage.removeItem('token');
         }
       } catch (error) {
         console.error('Auth check failed', error);
@@ -45,11 +49,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      await fetchWithAuth('/api/auth/logout', { method: 'POST' });
+      localStorage.removeItem('token');
       setUser(null);
       window.location.href = '/login';
     } catch (error) {
       console.error('Logout failed', error);
+      // Force logout even if API fails
+      localStorage.removeItem('token');
+      setUser(null);
+      window.location.href = '/login';
     }
   };
 
