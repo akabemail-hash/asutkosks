@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { Plus, Edit, Trash, X, Save } from 'lucide-react';
-import { fetchWithAuth } from '../utils/api';
 
 export default function Admin() {
   const { t } = useTranslation();
@@ -25,7 +24,7 @@ export default function Admin() {
 
   const fetchRoles = async () => {
     try {
-      const res = await fetchWithAuth('/api/roles');
+      const res = await fetch('/api/roles');
       if (res.ok) setRolesList(await res.json());
     } catch (error) {
       console.error('Error fetching roles', error);
@@ -39,7 +38,7 @@ export default function Admin() {
     setError(null);
     try {
       if (activeTab === 'users') {
-        const res = await fetchWithAuth('/api/users');
+        const res = await fetch('/api/users');
         if (res.ok) {
           setUsers(await res.json());
         } else {
@@ -47,7 +46,7 @@ export default function Admin() {
           console.error('Failed to fetch users:', res.status, res.statusText);
         }
       } else {
-        const res = await fetchWithAuth('/api/roles');
+        const res = await fetch('/api/roles');
         if (res.ok) {
           setRoles(await res.json());
         } else {
@@ -79,7 +78,7 @@ export default function Admin() {
     }
 
     try {
-      const res = await fetchWithAuth(endpoint, {
+      const res = await fetch(endpoint, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dataToSend)
@@ -103,7 +102,7 @@ export default function Admin() {
     if (!confirm(t('delete') + '?')) return;
     const url = activeTab === 'users' ? `/api/users/${id}` : `/api/roles/${id}`;
     try {
-      await fetchWithAuth(url, { method: 'DELETE' });
+      await fetch(url, { method: 'DELETE' });
       fetchData();
     } catch (error) {
       console.error('Error deleting', error);

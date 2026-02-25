@@ -73,7 +73,7 @@ export default function App() {
           <Route
             path="/admin/reports"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredRole="admin">
                 <Layout>
                   <VisitReport />
                 </Layout>

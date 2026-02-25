@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Edit, Trash, Search, X, Download, Upload } from 'lucide-react';
 import * as XLSX from 'xlsx';
-import { fetchWithAuth } from '../utils/api';
 
 export default function Kiosks() {
   const { t } = useTranslation();
@@ -52,7 +51,7 @@ export default function Kiosks() {
 
       const query = new URLSearchParams(queryParams).toString();
       
-      const res = await fetchWithAuth(`/api/kiosks?${query}`);
+      const res = await fetch(`/api/kiosks?${query}`);
       if (res.ok) {
         const data = await res.json();
         setKiosks(data.data);
@@ -72,7 +71,7 @@ export default function Kiosks() {
   const handleExport = async () => {
     try {
       // Fetch all kiosks for export
-      const res = await fetchWithAuth('/api/kiosks?limit=0');
+      const res = await fetch('/api/kiosks?limit=0');
       if (!res.ok) throw new Error('Failed to fetch data for export');
       const data = await res.json();
       
@@ -116,7 +115,7 @@ export default function Kiosks() {
         // Assuming Excel columns match DB fields or close to it
         // We expect: kiosk_number, supervisor, mobile_number, address, is_active
         
-        const res = await fetchWithAuth('/api/kiosks/import', {
+        const res = await fetch('/api/kiosks/import', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
@@ -144,7 +143,7 @@ export default function Kiosks() {
     const endpoint = editingItem ? `/api/kiosks/${editingItem.id}` : '/api/kiosks';
 
     try {
-      const res = await fetchWithAuth(endpoint, {
+      const res = await fetch(endpoint, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -167,7 +166,7 @@ export default function Kiosks() {
   const handleDelete = async (id: number) => {
     if (!confirm(t('delete') + '?')) return;
     try {
-      await fetchWithAuth(`/api/kiosks/${id}`, { method: 'DELETE' });
+      await fetch(`/api/kiosks/${id}`, { method: 'DELETE' });
       fetchKiosks();
     } catch (error) {
       console.error('Error deleting', error);
@@ -183,7 +182,7 @@ export default function Kiosks() {
     
     console.log('Sending DELETE request to /api/kiosks/all');
     try {
-      const res = await fetchWithAuth('/api/kiosks/all', { method: 'DELETE' });
+      const res = await fetch('/api/kiosks/all', { method: 'DELETE' });
       console.log('DELETE response status:', res.status);
       
       if (res.ok) {

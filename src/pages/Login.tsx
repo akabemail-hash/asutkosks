@@ -14,25 +14,18 @@ export default function Login() {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
 
-  const [isLoading, setIsLoading] = useState(false);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setIsLoading(true);
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password, rememberMe }),
-        credentials: 'include'
+        body: JSON.stringify({ username, password, rememberMe })
       });
 
       if (res.ok) {
         const data = await res.json();
-        if (data.token) {
-          localStorage.setItem('token', data.token);
-        }
         login(data.user);
         navigate('/admin');
       } else {
@@ -40,9 +33,7 @@ export default function Login() {
         setError(data.message || 'Login failed');
       }
     } catch (err) {
-      setError('An error occurred. Please try again.');
-    } finally {
-      setIsLoading(false);
+      setError('An error occurred');
     }
   };
 
@@ -134,10 +125,9 @@ export default function Login() {
             <div>
               <button
                 type="submit"
-                disabled={isLoading}
-                className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${isLoading ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               >
-                {isLoading ? 'Signing in...' : t('signIn')}
+                {t('signIn')}
               </button>
             </div>
           </form>

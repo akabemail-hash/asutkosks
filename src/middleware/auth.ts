@@ -8,7 +8,7 @@ export interface AuthRequest extends Request {
 }
 
 export const authenticateToken = (req: AuthRequest, res: Response, next: NextFunction) => {
-  const token = req.cookies.token || (req.headers.authorization && req.headers.authorization.split(' ')[1]);
+  const token = req.cookies.token;
 
   if (!token) {
     console.log('Auth failed: No token provided');

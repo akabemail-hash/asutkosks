@@ -38,19 +38,14 @@ router.post('/login', async (req, res) => {
       { expiresIn: rememberMe ? '7d' : '1h' }
     );
 
-    const isSecure = req.secure || req.headers['x-forwarded-proto'] === 'https';
-
     res.cookie('token', token, {
       httpOnly: true,
-      secure: isSecure, // Use secure cookies if connection is secure
-      sameSite: isSecure ? 'none' : 'lax', // None for secure (cross-site/iframe), Lax for local
-      maxAge: rememberMe ? 7 * 24 * 60 * 60 * 1000 : 60 * 60 * 1000, // 7 days or 1 hour
-      path: '/'
+      secure: true, // Required for SameSite=None
+      sameSite: 'none', // Required for cross-origin iframe
+      maxAge: rememberMe ? 7 * 24 * 60 * 60 * 1000 : 60 * 60 * 1000 // 7 days or 1 hour
     });
 
     res.json({ 
-      message: 'Login successful',
-      token,
       user: { 
         id: user.id, 
         username: user.username, 
