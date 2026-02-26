@@ -12,6 +12,8 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
 
   if (!token) {
     console.log('Auth failed: No token provided');
+    console.log('Cookies:', req.cookies);
+    console.log('Headers:', req.headers);
     return res.status(401).json({ message: 'Unauthorized' });
   }
 

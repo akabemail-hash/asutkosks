@@ -30,8 +30,12 @@ export default function Login() {
 
       if (res.ok) {
         const data = await res.json();
+        console.log('Login successful:', data);
         if (data.token) {
           localStorage.setItem('token', data.token);
+          console.log('Token saved to localStorage');
+        } else {
+          console.error('No token in response');
         }
         login(data.user);
         navigate('/admin');
