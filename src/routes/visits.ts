@@ -3,30 +3,11 @@ import { supabase } from '../db/supabase';
 import { authenticateToken } from '../middleware/auth';
 import multer from 'multer';
 import path from 'path';
-import fs from 'fs';
 
 const router = express.Router();
 
-// Ensure uploads directory exists
-const uploadDir = process.env.NODE_ENV === 'production' ? '/tmp' : path.join(process.cwd(), 'uploads');
-
-try {
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-  }
-} catch (err) {
-  console.warn('Failed to create upload directory:', err);
-}
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  }
-});
+// Use memory storage for Supabase uploads
+const storage = multer.memoryStorage();
 
 const upload = multer({ 
   storage: storage,
@@ -42,13 +23,40 @@ const upload = multer({
 
 router.use(authenticateToken);
 
+// Helper function to upload file to Supabase
+async function uploadFileToSupabase(file: any) {
+  const fileExt = path.extname(file.originalname);
+  const fileName = `${Date.now()}-${Math.round(Math.random() * 1E9)}${fileExt}`;
+  
+  // Upload to 'visit-photos' bucket
+  const { error } = await supabase.storage
+    .from('visit-photos')
+    .upload(fileName, file.buffer, {
+      contentType: file.mimetype,
+      upsert: false
+    });
+
+  if (error) throw error;
+
+  const { data } = supabase.storage
+    .from('visit-photos')
+    .getPublicUrl(fileName);
+
+  return data.publicUrl;
+}
+
 router.post('/', upload.array('photos', 2), async (req: any, res) => {
   const { kiosk_id, visit_date, visit_time, visit_type_id, problem_type_id, description } = req.body;
   const user_id = req.user.id;
   
-  const photos = req.files ? JSON.stringify(req.files.map((f: any) => `/uploads/${f.filename}`)) : '[]';
-
   try {
+    let photoUrls: string[] = [];
+    if (req.files && req.files.length > 0) {
+      photoUrls = await Promise.all(req.files.map((file: any) => uploadFileToSupabase(file)));
+    }
+    
+    const photos = JSON.stringify(photoUrls);
+
     const { data, error } = await supabase
       .from('visits')
       .insert({
@@ -124,11 +132,6 @@ router.put('/:id', authenticateToken, upload.array('photos', 2), async (req: any
   const { id } = req.params;
   const { kiosk_id, visit_date, visit_time, visit_type_id, problem_type_id, description } = req.body;
   
-  let photos = null;
-  if (req.files && req.files.length > 0) {
-    photos = JSON.stringify(req.files.map((f: any) => `/uploads/${f.filename}`));
-  }
-
   try {
     const updates: any = {
       kiosk_id, 
@@ -139,8 +142,9 @@ router.put('/:id', authenticateToken, upload.array('photos', 2), async (req: any
       description
     };
     
-    if (photos) {
-      updates.photos = photos;
+    if (req.files && req.files.length > 0) {
+      const photoUrls = await Promise.all(req.files.map((file: any) => uploadFileToSupabase(file)));
+      updates.photos = JSON.stringify(photoUrls);
     }
 
     const { error } = await supabase

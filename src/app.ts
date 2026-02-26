@@ -16,9 +16,6 @@ app.set('trust proxy', 1); // Trust first proxy (nginx/Vercel)
 app.use(express.json());
 app.use(cookieParser());
 
-// Serve uploaded files - In Vercel, this won't persist, but for local it's fine
-app.use('/uploads', express.static('uploads'));
-
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
