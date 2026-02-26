@@ -61,8 +61,8 @@ router.post('/login', async (req, res) => {
       } 
     });
   } catch (err: any) {
-    console.error(err);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error('Login error:', err);
+    res.status(500).json({ message: 'Internal server error: ' + (err.message || 'Unknown error') });
   }
 });
 
@@ -103,8 +103,8 @@ router.get('/me', authenticateToken, async (req: AuthRequest, res) => {
       } 
     });
   } catch (err: any) {
-    console.error(err);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error('Me route error:', err);
+    res.status(500).json({ message: 'Internal server error: ' + (err.message || 'Unknown error') });
   }
 });
 
