@@ -38,14 +38,20 @@ router.post('/login', async (req, res) => {
       { expiresIn: rememberMe ? '7d' : '1h' }
     );
 
+    // Force secure cookies for iframe environment
+    const isSecure = true; 
+
     res.cookie('token', token, {
       httpOnly: true,
-      secure: true, // Required for SameSite=None
-      sameSite: 'none', // Required for cross-origin iframe
-      maxAge: rememberMe ? 7 * 24 * 60 * 60 * 1000 : 60 * 60 * 1000 // 7 days or 1 hour
+      secure: true, // Always true for this environment
+      sameSite: 'none', // Always none for iframe
+      maxAge: rememberMe ? 7 * 24 * 60 * 60 * 1000 : 60 * 60 * 1000, // 7 days or 1 hour
+      path: '/'
     });
 
     res.json({ 
+      message: 'Login successful',
+      token,
       user: { 
         id: user.id, 
         username: user.username, 
@@ -61,7 +67,11 @@ router.post('/login', async (req, res) => {
 });
 
 router.post('/logout', (req, res) => {
-  res.clearCookie('token');
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'none'
+  });
   res.json({ message: 'Logged out' });
 });
 

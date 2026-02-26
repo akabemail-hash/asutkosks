@@ -8,7 +8,7 @@ export interface AuthRequest extends Request {
 }
 
 export const authenticateToken = (req: AuthRequest, res: Response, next: NextFunction) => {
-  const token = req.cookies.token;
+  const token = req.cookies.token || (req.headers.authorization && req.headers.authorization.split(' ')[1]);
 
   if (!token) {
     console.log('Auth failed: No token provided');
@@ -18,7 +18,12 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
   jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
     if (err) {
       console.log('Auth failed: Invalid token', err.message);
-      return res.status(403).json({ message: 'Forbidden' });
+      res.clearCookie('token', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none'
+      });
+      return res.status(401).json({ message: 'Unauthorized: Invalid token' });
     }
     req.user = user;
     next();
