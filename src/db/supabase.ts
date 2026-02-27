@@ -1,25 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY;
+// Fallback credentials (restored from previous configuration)
+// Note: It is highly recommended to use Environment Variables in production.
+const DEFAULT_SUPABASE_URL = 'https://ctweiphtosawbraflzat.supabase.co';
+const DEFAULT_SUPABASE_KEY = 'sb_publishable_EXfo6mq_RHDZdVDB7QybUw_yyDaTCAC';
 
-// Create a proxy to handle missing credentials gracefully
-// This prevents the app from crashing on startup if env vars are missing
-const clientCache: { client: any } = { client: null };
+const supabaseUrl = process.env.SUPABASE_URL || DEFAULT_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || DEFAULT_SUPABASE_KEY;
 
-export const supabase = new Proxy({} as any, {
-  get: (target, prop) => {
-    // If credentials exist, create the real client once and cache it
-    if (supabaseUrl && supabaseKey) {
-      if (!clientCache.client) {
-        clientCache.client = createClient(supabaseUrl, supabaseKey);
-      }
-      return clientCache.client[prop];
-    }
+if (!supabaseUrl || !supabaseKey) {
+  console.warn('Supabase credentials missing. App may not function correctly.');
+}
 
-    // If credentials are missing, throw a descriptive error when accessed
-    throw new Error(
-      'Supabase not initialized. Missing SUPABASE_URL or SUPABASE_KEY/SUPABASE_SERVICE_ROLE_KEY environment variables.'
-    );
-  }
-});
+export const supabase = createClient(supabaseUrl, supabaseKey);
