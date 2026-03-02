@@ -8,12 +8,20 @@ export interface AuthRequest extends Request {
 }
 
 export const authenticateToken = (req: AuthRequest, res: Response, next: NextFunction) => {
-  const token = req.cookies.token || (req.headers.authorization && req.headers.authorization.split(' ')[1]);
+  // Safely access cookies and headers
+  const cookieToken = req.cookies?.token;
+  const authHeader = req.headers['authorization'] || req.headers['Authorization'];
+  const headerToken = authHeader && (authHeader as string).startsWith('Bearer ') 
+    ? (authHeader as string).split(' ')[1] 
+    : null;
+
+  const token = cookieToken || headerToken;
 
   if (!token) {
-    console.log('Auth failed: No token provided');
-    console.log('Cookies:', req.cookies);
-    console.log('Headers:', req.headers);
+    // Don't log error for /me endpoint as it's used for initial auth check
+    if (!req.path.endsWith('/me')) {
+      console.log('Auth failed: No token provided for path:', req.path);
+    }
     return res.status(401).json({ message: 'Unauthorized' });
   }
 

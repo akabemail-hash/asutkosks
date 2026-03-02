@@ -40,11 +40,19 @@ export default function Login() {
         login(data.user);
         navigate('/admin');
       } else {
-        const data = await res.json();
-        setError(data.message || 'Login failed');
+        // Try to parse JSON, fallback to text if failed
+        try {
+          const data = await res.json();
+          setError(data.message || `Login failed (${res.status})`);
+        } catch (e) {
+          const text = await res.text();
+          console.error('Non-JSON response:', text);
+          setError(`Server error (${res.status}): ${text.slice(0, 100)}...`);
+        }
       }
-    } catch (err) {
-      setError('An error occurred. Please try again.');
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setError(err.message || 'An error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }

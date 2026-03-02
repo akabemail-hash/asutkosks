@@ -1,8 +1,11 @@
 import express from 'express';
-import bcrypt from 'bcryptjs';
+import * as bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { supabase } from '../db/supabase';
 import { AuthRequest, authenticateToken } from '../middleware/auth';
+
+// Handle bcryptjs import compatibility
+const bcrypt = (bcryptjs as any).default || bcryptjs;
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';

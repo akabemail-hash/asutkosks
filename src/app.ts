@@ -11,6 +11,8 @@ import statsRouter from './routes/stats';
 
 const app = express();
 
+console.log('App initialized');
+
 app.set('trust proxy', 1); // Trust first proxy (nginx/Vercel)
 
 app.use(express.json());
